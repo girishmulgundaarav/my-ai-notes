@@ -6,7 +6,7 @@ import {
   PlusCircle, 
   User, 
   LogOut,
-  Command
+  Cpu
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +30,7 @@ const Sidebar = () => {
     <div className="sidebar glass-panel">
       <div className="sidebar-logo">
         <div className="logo-icon">
-          <Command size={24} color="white" />
+          <Cpu size={24} color="white" />
         </div>
         <h2>AI Notes</h2>
       </div>

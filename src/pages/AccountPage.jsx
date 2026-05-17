@@ -1,13 +1,72 @@
-import React from 'react';
-import { User, Mail, Shield, LogOut, Camera } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { User, Mail, Shield, LogOut, Camera, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import '../styles/LoginPage.css'; // Reusing some glassmorphic styles
+import '../styles/LoginPage.css';
 
 const AccountPage = ({ session }) => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const user = session?.user;
-  const { full_name, avatar_url } = user?.user_metadata || {};
+  const { full_name } = user?.user_metadata || {};
+
+  useEffect(() => {
+    const loadAvatar = async () => {
+      const path = user?.user_metadata?.avatar_path;
+      if (path) {
+        const { data } = await supabase.storage.from('app-files').createSignedUrl(path, 3600);
+        if (data) setAvatarUrl(data.signedUrl);
+      } else if (user?.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+    };
+    loadAvatar();
+  }, [user]);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event) => {
+    try {
+      setUploading(true);
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const fileExt = file.name.split('.').pop();
+      const uuid = Math.random().toString(36).substring(2, 15);
+      const filePath = `${user.id}/avatars/${user.id}/${uuid}.${fileExt}`;
+
+      let { error: uploadError } = await supabase.storage
+        .from('app-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const oldAvatarPath = user?.user_metadata?.avatar_path;
+      if (oldAvatarPath) {
+        await supabase.storage.from('app-files').remove([oldAvatarPath]);
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_path: filePath, avatar_url: null }
+      });
+
+      if (updateError) throw updateError;
+      
+      const { data } = await supabase.storage.from('app-files').createSignedUrl(filePath, 3600);
+      if (data) setAvatarUrl(data.signedUrl);
+      
+    } catch (error) {
+      console.error('Error uploading image: ', error.message);
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -18,20 +77,31 @@ const AccountPage = ({ session }) => {
     <div className="account-page fade-in" style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
       <div className="account-card glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
         <div className="profile-header" style={{ position: 'relative', display: 'inline-block', marginBottom: '32px' }}>
-          {avatar_url ? (
+          {avatarUrl ? (
             <img 
-              src={avatar_url} 
+              src={avatarUrl} 
               alt="Profile" 
               style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '4px solid white', boxShadow: 'var(--glass-shadow)' }} 
             />
           ) : (
-            <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', align_items: 'center', justifyContent: 'center', border: '4px solid white', boxShadow: 'var(--glass-shadow)' }}>
+            <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '4px solid white', boxShadow: 'var(--glass-shadow)' }}>
               <User size={64} />
             </div>
           )}
-          <button style={{ position: 'absolute', bottom: '0', right: '0', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-            <Camera size={18} />
+          <button 
+            onClick={handleUploadClick}
+            disabled={uploading}
+            style={{ position: 'absolute', bottom: '0', right: '0', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+          >
+            {uploading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={18} />}
           </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
         </div>
 
         <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>{full_name || 'User Account'}</h1>

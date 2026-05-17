@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Command, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Cpu, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import '../styles/LoginPage.css';
@@ -48,9 +48,9 @@ const LoginPage = () => {
       <div className="login-card glass-panel fade-in">
         <div className="login-header">
           <div className="login-logo">
-            <Command size={32} color="white" />
+            <Cpu size={32} color="white" />
           </div>
-          <h1>Welcome Back</h1>
+          <h1>Welcome to AI Notes</h1>
           <p>Enter your credentials to access your AI workspace.</p>
         </div>
 

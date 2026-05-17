@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, ArrowLeft, Command } from 'lucide-react';
+import { Mail, ArrowLeft, Cpu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/LoginPage.css';
 
