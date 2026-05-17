@@ -90,7 +90,7 @@
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  width: 200px;
+  width: 220px;
   padding: 8px;
   z-index: 2000;
   display: flex;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Sparkles, User, LogOut, Settings, Shield, X, Loader2, Menu } from 'lucide-react';
+import { Search, Sparkles, User, LogOut, Settings, Shield, X, Loader2, Menu, Palette } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,20 @@ const Header = ({ user, onToggleSidebar }) => {
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
+  
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('app-theme') || 'default';
+  });
+
+  const handleThemeChange = (newTheme) => {
+    setCurrentTheme(newTheme);
+    localStorage.setItem('app-theme', newTheme);
+    if (newTheme === 'default') {
+      document.documentElement.className = '';
+    } else {
+      document.documentElement.className = `theme-${newTheme}`;
+    }
+  };
   
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -162,14 +176,37 @@ const Header = ({ user, onToggleSidebar }) => {
                 <User size={16} />
                 <span>My Account</span>
               </button>
-              <button className="dropdown-item">
-                <Settings size={16} />
-                <span>Settings</span>
-              </button>
-              <button className="dropdown-item">
-                <Shield size={16} />
-                <span>Privacy</span>
-              </button>
+              <div className="dropdown-divider"></div>
+              <div className="dropdown-theme-section" style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <Palette size={13} style={{ color: 'var(--primary)' }} />
+                  <span>Workspace Skin</span>
+                </div>
+                <select 
+                  value={currentTheme} 
+                  onChange={(e) => handleThemeChange(e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    padding: '6px 8px', 
+                    borderRadius: '8px', 
+                    border: '1px solid rgba(0, 0, 0, 0.08)', 
+                    background: 'white', 
+                    fontSize: '0.76rem', 
+                    fontWeight: 600, 
+                    color: 'var(--text-main)', 
+                    outline: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <option value="default">✨ Default Lavender</option>
+                  <option value="nebula">🌌 Midnight Nebula</option>
+                  <option value="sakura">🌸 Sakura Blossom</option>
+                  <option value="forest">🌿 Forest Canopy</option>
+                  <option value="cyberpunk">⚡ Cyberpunk Neon</option>
+                </select>
+              </div>
               <div className="dropdown-divider"></div>
               <button className="dropdown-item logout" onClick={handleSignOut}>
                 <LogOut size={16} />

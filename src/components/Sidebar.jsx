@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   Home, 
@@ -7,8 +7,7 @@ import {
   User, 
   LogOut,
   Cpu,
-  X,
-  Palette
+  X
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -16,20 +15,6 @@ import '../styles/Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem('app-theme') || 'default';
-  });
-
-  const handleThemeChange = (newTheme) => {
-    setCurrentTheme(newTheme);
-    localStorage.setItem('app-theme', newTheme);
-    if (newTheme === 'default') {
-      document.documentElement.className = '';
-    } else {
-      document.documentElement.className = `theme-${newTheme}`;
-    }
-  };
-
   const navItems = [
     { icon: <Home size={20} />, label: 'Home', path: '/home' },
     { icon: <StickyNote size={20} />, label: 'My Notes', path: '/my-notes' },
@@ -82,37 +67,6 @@ const Sidebar = ({ isOpen, onClose }) => {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="theme-switcher-wrapper" style={{ padding: '0 8px 16px 8px', borderBottom: '1px solid rgba(0, 0, 0, 0.05)', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            <Palette size={14} style={{ color: 'var(--primary)' }} />
-            <span>Theme Skin</span>
-          </div>
-          <select 
-            value={currentTheme} 
-            onChange={(e) => handleThemeChange(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '8px 10px', 
-              borderRadius: '10px', 
-              border: '1px solid rgba(0, 0, 0, 0.08)', 
-              background: 'white', 
-              fontSize: '0.8rem', 
-              fontWeight: 600, 
-              color: 'var(--text-main)', 
-              outline: 'none',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s'
-            }}
-          >
-            <option value="default">✨ Default Lavender</option>
-            <option value="nebula">🌌 Midnight Nebula</option>
-            <option value="sakura">🌸 Sakura Blossom</option>
-            <option value="forest">🌿 Forest Canopy</option>
-            <option value="cyberpunk">⚡ Cyberpunk Neon</option>
-          </select>
-        </div>
-
         <button className="nav-link sign-out" onClick={handleSignOut}>
           <LogOut size={20} />
           <span>Sign Out</span>
