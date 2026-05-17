@@ -159,3 +159,79 @@ h1, h2, h3, h4, h5, h6 {
     padding: 10px 0;
   }
 }
+
+/* ==========================================================================
+   THEME ARCHITECT: CURATED AESTHETIC SKIN PALETTES
+   ========================================================================== */
+
+/* 🌌 Midnight Nebula: Deep slate purples with glowing indigo borders */
+.theme-nebula {
+  --primary: #818cf8;
+  --primary-hover: #6366f1;
+  --primary-light: rgba(129, 140, 248, 0.12);
+  --accent: #c084fc;
+  --accent-light: rgba(192, 132, 252, 0.12);
+  
+  --bg-gradient: linear-gradient(135deg, #090d16 0%, #111329 100%);
+  --glass-bg: rgba(13, 16, 32, 0.75);
+  --glass-border: rgba(129, 140, 248, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.12);
+  
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+}
+
+/* 🌸 Sakura Blossom: Warm soft pink glassmorphism */
+.theme-sakura {
+  --primary: #ec4899;
+  --primary-hover: #db2777;
+  --primary-light: #fce7f3;
+  --accent: #f43f5e;
+  --accent-light: #ffe4e6;
+  
+  --bg-gradient: linear-gradient(135deg, #fff1f2 0%, #fdf2f8 100%);
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(236, 72, 153, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.08);
+  
+  --text-main: #4c0519;
+  --text-muted: #9d174d;
+  --text-light: #f472b6;
+}
+
+/* 🌿 Forest Canopy: Calming dark sage greens */
+.theme-forest {
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-light: #d1fae5;
+  --accent: #0d9488;
+  --accent-light: #ccfbf1;
+  
+  --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(16, 185, 129, 0.16);
+  --glass-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.06);
+  
+  --text-main: #064e3b;
+  --text-muted: #047857;
+  --text-light: #34d399;
+}
+
+/* ⚡ Cyberpunk Neon: Dark mode with neon pink and cyan glows */
+.theme-cyberpunk {
+  --primary: #ff007f;
+  --primary-hover: #e60072;
+  --primary-light: rgba(255, 0, 127, 0.12);
+  --accent: #00ffff;
+  --accent-light: rgba(0, 255, 255, 0.12);
+  
+  --bg-gradient: linear-gradient(135deg, #030305 0%, #09090f 100%);
+  --glass-bg: rgba(6, 6, 12, 0.85);
+  --glass-border: rgba(255, 0, 127, 0.35);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 255, 255, 0.18);
+  
+  --text-main: #ffffff;
+  --text-muted: #8b8ba9;
+  --text-light: #ff007f;
+}
