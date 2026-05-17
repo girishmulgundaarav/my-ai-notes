@@ -17,7 +17,9 @@ import {
   CheckSquare,
   Square,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Target,
+  Timer
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../supabaseClient';
@@ -41,9 +43,6 @@ const HomePage = ({ userName }) => {
   const [aiQuery, setAiQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-
-  // AI Productivity Station Tab State
-  const [activeTab, setActiveTab] = useState('todo'); // 'todo' | 'pomodoro' | 'reading'
   
   // 1. Pomodoro Timer State
   const [timeLeft, setTimeLeft] = useState(1500); // default 25 min (1500s)
@@ -766,6 +765,120 @@ const HomePage = ({ userName }) => {
             </div>
           </div>
 
+          {/* 📚 READING TRACKER SECTION (LEFT COLUMN) */}
+          <div className="books-tracker-card glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '20px', background: 'var(--glass-bg)', backdropFilter: 'blur(12px)', border: '1px solid var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
+            <div className="card-header">
+              <div className="header-title">
+                <BookOpen size={20} color="var(--primary)" />
+                <h3>Reading Shelf & Tracker</h3>
+              </div>
+            </div>
+            
+            <div className="reading-widget-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>ADD A NEW BOOK TO SHELF</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Book Title..." 
+                    value={bookTitle} 
+                    onChange={(e) => setBookTitle(e.target.value)}
+                    style={{ flex: 1.5, padding: '8px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Author..." 
+                    value={bookAuthor} 
+                    onChange={(e) => setBookAuthor(e.target.value)}
+                    style={{ flex: 1, padding: '8px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input 
+                    type="number" 
+                    placeholder="Total Pages..." 
+                    value={bookTotalPages} 
+                    onChange={(e) => setBookTotalPages(e.target.value)}
+                    style={{ flex: 1, padding: '8px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                  <select 
+                    value={selectedNoteId} 
+                    onChange={(e) => setSelectedNoteId(e.target.value)}
+                    style={{ flex: 1.5, padding: '8px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: 'var(--text-muted)' }}
+                  >
+                    <option value="">Link Study Summary Note...</option>
+                    {notesList.map(note => (
+                      <option key={note.id} value={note.id}>{note.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <button onClick={handleAddBook} className="btn btn-primary" style={{ padding: '8px', fontSize: '0.8rem', borderRadius: '8px', marginTop: '4px' }}>
+                  <Plus size={14} style={{ marginRight: '4px' }} /> Add to Active Shelf
+                </button>
+              </div>
+
+              <div className="books-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', maxHeight: '350px', overflowY: 'auto', paddingRight: '4px' }}>
+                {books.length === 0 ? (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '30px 0', color: 'var(--text-light)', fontSize: '0.85rem' }}>No books listed. Add your current read to track progress!</div>
+                ) : (
+                  books.map((book) => {
+                    const progress = Math.min(100, Math.round((book.current_page / book.total_pages) * 100)) || 0;
+                    return (
+                      <div key={book.id} style={{ background: 'white', border: '1px solid #f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>{book.title}</h4>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>by {book.author}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            {book.note_id && (
+                              <button 
+                                onClick={() => navigate(`/note/${book.note_id}`)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '4px' }}
+                                title="Open Linked Note"
+                              >
+                                <ExternalLink size={14} />
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => handleDeleteBook(book.id)}
+                              style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ flex: 1, height: '6px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
+                            <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(to right, var(--primary), var(--accent))', borderRadius: '10px' }} />
+                          </div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)' }}>{progress}%</span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '2px' }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>
+                            Page {book.current_page} of {book.total_pages}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Current Page:</span>
+                            <input 
+                              type="number" 
+                              defaultValue={book.current_page} 
+                              onBlur={(e) => handleUpdatePageProgress(book.id, e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleUpdatePageProgress(book.id, e.target.value)}
+                              style={{ width: '50px', padding: '2px 4px', fontSize: '0.7rem', textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* Right Column (1fr) */}
@@ -796,266 +909,146 @@ const HomePage = ({ userName }) => {
             </div>
           </div>
 
-          {/* AI Productivity Station (Checklist, Timer, Reading) */}
-          <div className="productivity-station-card glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '20px', background: 'var(--glass-bg)', backdropFilter: 'blur(12px)', border: '1px solid var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
-            
-            {/* Custom Tab Selector */}
-            <div className="station-tabs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.03)', padding: '4px', borderRadius: '12px' }}>
-              <button 
-                onClick={() => setActiveTab('todo')} 
-                style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s', background: activeTab === 'todo' ? 'white' : 'transparent', color: activeTab === 'todo' ? 'var(--primary)' : 'var(--text-muted)', boxShadow: activeTab === 'todo' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none' }}
-              >
-                📝 Tasks
-              </button>
-              <button 
-                onClick={() => setActiveTab('pomodoro')} 
-                style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s', background: activeTab === 'pomodoro' ? 'white' : 'transparent', color: activeTab === 'pomodoro' ? 'var(--primary)' : 'var(--text-muted)', boxShadow: activeTab === 'pomodoro' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none' }}
-              >
-                ⏱️ Focus
-              </button>
-              <button 
-                onClick={() => setActiveTab('reading')} 
-                style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s', background: activeTab === 'reading' ? 'white' : 'transparent', color: activeTab === 'reading' ? 'var(--primary)' : 'var(--text-muted)', boxShadow: activeTab === 'reading' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none' }}
-              >
-                📚 Books
-              </button>
+          {/* ⏱️ POMODORO TIMER SECTION (RIGHT COLUMN) */}
+          <div className="pomodoro-card glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '20px', background: 'var(--glass-bg)', backdropFilter: 'blur(12px)', border: '1px solid var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
+            <div className="card-header">
+              <div className="header-title">
+                <Timer size={20} color="var(--primary)" />
+                <h3>Focus Timer</h3>
+              </div>
             </div>
 
-            {/* TAB 1: Tasks Checklist */}
-            {activeTab === 'todo' && (
-              <div className="todo-widget-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input 
-                    type="text" 
-                    value={taskInput}
-                    onChange={(e) => setTaskInput(e.target.value)}
-                    placeholder="Add a study goal..."
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-                    style={{ flex: 1, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '0.85rem' }}
+            <div className="pomodoro-widget-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', gap: '6px', background: 'rgba(0,0,0,0.02)', padding: '3px', borderRadius: '10px', width: '100%' }}>
+                <button onClick={() => handleModeChange('focus')} style={{ flex: 1, border: 'none', background: timerMode === 'focus' ? 'white' : 'transparent', color: timerMode === 'focus' ? 'var(--primary)' : 'var(--text-muted)', padding: '6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: timerMode === 'focus' ? '0 1px 4px rgba(0,0,0,0.05)' : 'none' }}>Focus (25m)</button>
+                <button onClick={() => handleModeChange('short')} style={{ flex: 1, border: 'none', background: timerMode === 'short' ? 'white' : 'transparent', color: timerMode === 'short' ? 'var(--primary)' : 'var(--text-muted)', padding: '6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: timerMode === 'short' ? '0 1px 4px rgba(0,0,0,0.05)' : 'none' }}>Short (5m)</button>
+                <button onClick={() => handleModeChange('long')} style={{ flex: 1, border: 'none', background: timerMode === 'long' ? 'white' : 'transparent', color: timerMode === 'long' ? 'var(--primary)' : 'var(--text-muted)', padding: '6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: timerMode === 'long' ? '0 1px 4px rgba(0,0,0,0.05)' : 'none' }}>Long (15m)</button>
+              </div>
+
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="124" height="124" viewBox="0 0 124 124" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="62" cy="62" r={timerRadius} stroke="rgba(0,0,0,0.04)" strokeWidth="6" fill="transparent" />
+                  <circle 
+                    cx="62" 
+                    cy="62" 
+                    r={timerRadius} 
+                    stroke="var(--primary)" 
+                    strokeWidth="6" 
+                    fill="transparent" 
+                    strokeDasharray={timerCircumference}
+                    strokeDashoffset={isNaN(strokeDashoffset) ? 0 : strokeDashoffset}
+                    strokeLinecap="round"
+                    style={{ transition: 'stroke-dashoffset 0.5s linear' }}
                   />
-                  <button onClick={handleAddTask} className="btn btn-primary" style={{ padding: '0 12px', borderRadius: '10px' }}>
-                    <Plus size={16} />
-                  </button>
+                </svg>
+                <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                    {formatTime(timeLeft)}
+                  </span>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {timerMode}
+                  </span>
                 </div>
+              </div>
 
-                <div className="tasks-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {tasks.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-light)', fontSize: '0.85rem' }}>No goals scheduled. Add one above!</div>
-                  ) : (
-                    tasks.map((task) => (
-                      <div key={task.id} className="task-container" style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'white', padding: '10px 12px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', flex: 1 }} onClick={() => handleToggleTask(task.id, task.completed)}>
-                            {task.completed ? (
-                              <CheckSquare size={18} color="var(--primary)" />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button onClick={() => setIsActive(!isActive)} className="btn btn-primary" style={{ padding: '8px 24px', borderRadius: '20px', fontSize: '0.85rem' }}>
+                  {isActive ? <Pause size={16} style={{ marginRight: '4px' }} /> : <Play size={16} style={{ marginRight: '4px' }} />}
+                  {isActive ? 'Pause' : 'Start'}
+                </button>
+                <button onClick={() => handleModeChange(timerMode)} className="btn btn-secondary" style={{ padding: '8px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 📝 TASKS CHECKLIST SECTION (RIGHT COLUMN) */}
+          <div className="tasks-widget-card glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '20px', background: 'var(--glass-bg)', backdropFilter: 'blur(12px)', border: '1px solid var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
+            <div className="card-header">
+              <div className="header-title">
+                <Target size={20} color="var(--accent)" />
+                <h3>Study Checklist</h3>
+              </div>
+            </div>
+
+            <div className="todo-widget-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={taskInput}
+                  onChange={(e) => setTaskInput(e.target.value)}
+                  placeholder="Set a focus goal..."
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+                  style={{ flex: 1, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '0.85rem' }}
+                />
+                <button onClick={handleAddTask} className="btn btn-primary" style={{ padding: '0 12px', borderRadius: '10px' }}>
+                  <Plus size={16} />
+                </button>
+              </div>
+
+              <div className="tasks-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+                {tasks.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-light)', fontSize: '0.85rem' }}>No study goals listed. Add one above!</div>
+                ) : (
+                  tasks.map((task) => (
+                    <div key={task.id} className="task-container" style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'white', padding: '10px 12px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', flex: 1 }} onClick={() => handleToggleTask(task.id, task.completed)}>
+                          {task.completed ? (
+                            <CheckSquare size={18} color="var(--primary)" />
+                          ) : (
+                            <Square size={18} color="#cbd5e1" />
+                          )}
+                          <span style={{ fontSize: '0.85rem', fontWeight: 500, color: task.completed ? 'var(--text-light)' : 'var(--text-main)', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                            {task.title}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button 
+                            onClick={() => handleAiBreakdown(task.id, task.title)}
+                            disabled={breakingTaskId === task.id || task.completed}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                            title="Generate AI subtasks"
+                          >
+                            {breakingTaskId === task.id ? (
+                              <Loader2 size={14} className="spinner" />
                             ) : (
-                              <Square size={18} color="#cbd5e1" />
+                              <Sparkles size={14} />
                             )}
-                            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: task.completed ? 'var(--text-light)' : 'var(--text-main)', textDecoration: task.completed ? 'line-through' : 'none' }}>
-                              {task.title}
-                            </span>
-                          </div>
-                          
-                          <div style={{ display: 'flex', gap: '4px' }}>
-                            <button 
-                              onClick={() => handleAiBreakdown(task.id, task.title)}
-                              disabled={breakingTaskId === task.id || task.completed}
-                              style={{ background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
-                              title="Breakdown with AI"
-                            >
-                              {breakingTaskId === task.id ? (
-                                <Loader2 size={14} className="spinner" />
-                              ) : (
-                                <Sparkles size={14} />
-                              )}
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteTask(task.id)}
-                              style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTask(task.id)}
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-
-                        {/* Nested Sub-Tasks */}
-                        {task.sub_tasks && task.sub_tasks.length > 0 && (
-                          <div className="sub-tasks-list" style={{ marginLeft: '26px', display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px dashed #e2e8f0', paddingLeft: '10px', marginTop: '4px' }}>
-                            {task.sub_tasks.map((st, idx) => (
-                              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => handleToggleSubTask(task.id, idx)}>
-                                {st.completed ? (
-                                  <CheckCircle size={14} color="#10b981" />
-                                ) : (
-                                  <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1.5px solid #cbd5e1' }}></div>
-                                )}
-                                <span style={{ fontSize: '0.8rem', color: st.completed ? 'var(--text-light)' : 'var(--text-muted)', textDecoration: st.completed ? 'line-through' : 'none' }}>
-                                  {st.text}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
 
-            {/* TAB 2: Pomodoro Timer */}
-            {activeTab === 'pomodoro' && (
-              <div className="pomodoro-widget-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div style={{ display: 'flex', gap: '6px', background: 'rgba(0,0,0,0.02)', padding: '3px', borderRadius: '10px', width: '100%' }}>
-                  <button onClick={() => handleModeChange('focus')} style={{ flex: 1, border: 'none', background: timerMode === 'focus' ? 'white' : 'transparent', color: timerMode === 'focus' ? 'var(--primary)' : 'var(--text-muted)', padding: '5px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: timerMode === 'focus' ? '0 1px 4px rgba(0,0,0,0.05)' : 'none' }}>Focus (25m)</button>
-                  <button onClick={() => handleModeChange('short')} style={{ flex: 1, border: 'none', background: timerMode === 'short' ? 'white' : 'transparent', color: timerMode === 'short' ? 'var(--primary)' : 'var(--text-muted)', padding: '5px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: timerMode === 'short' ? '0 1px 4px rgba(0,0,0,0.05)' : 'none' }}>Short Break (5m)</button>
-                  <button onClick={() => handleModeChange('long')} style={{ flex: 1, border: 'none', background: timerMode === 'long' ? 'white' : 'transparent', color: timerMode === 'long' ? 'var(--primary)' : 'var(--text-muted)', padding: '5px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: timerMode === 'long' ? '0 1px 4px rgba(0,0,0,0.05)' : 'none' }}>Long Break (15m)</button>
-                </div>
-
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="112" height="112" viewBox="0 0 112 112" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="56" cy="56" r={timerRadius} stroke="rgba(0,0,0,0.04)" strokeWidth="6" fill="transparent" />
-                    <circle 
-                      cx="56" 
-                      cy="56" 
-                      r={timerRadius} 
-                      stroke="var(--primary)" 
-                      strokeWidth="6" 
-                      fill="transparent" 
-                      strokeDasharray={timerCircumference}
-                      strokeDashoffset={isNaN(strokeDashoffset) ? 0 : strokeDashoffset}
-                      strokeLinecap="round"
-                      style={{ transition: 'stroke-dashoffset 0.5s linear' }}
-                    />
-                  </svg>
-                  <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      {formatTime(timeLeft)}
-                    </span>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {timerMode}
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={() => setIsActive(!isActive)} className="btn btn-primary" style={{ padding: '8px 20px', borderRadius: '20px', fontSize: '0.85rem' }}>
-                    {isActive ? <Pause size={16} /> : <Play size={16} />}
-                    {isActive ? 'Pause' : 'Start'}
-                  </button>
-                  <button onClick={() => handleModeChange(timerMode)} className="btn btn-secondary" style={{ padding: '8px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>
-                    <RotateCcw size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: Reading Tracker */}
-            {activeTab === 'reading' && (
-              <div className="reading-widget-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'white', padding: '10px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>ADD A BOOK</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <input 
-                      type="text" 
-                      placeholder="Title..." 
-                      value={bookTitle} 
-                      onChange={(e) => setBookTitle(e.target.value)}
-                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="Author..." 
-                      value={bookAuthor} 
-                      onChange={(e) => setBookAuthor(e.target.value)}
-                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <input 
-                      type="number" 
-                      placeholder="Total Pages..." 
-                      value={bookTotalPages} 
-                      onChange={(e) => setBookTotalPages(e.target.value)}
-                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                    />
-                    <select 
-                      value={selectedNoteId} 
-                      onChange={(e) => setSelectedNoteId(e.target.value)}
-                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.8rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: 'var(--text-muted)' }}
-                    >
-                      <option value="">Link Note...</option>
-                      {notesList.map(note => (
-                        <option key={note.id} value={note.id}>{note.title}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <button onClick={handleAddBook} className="btn btn-primary" style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '8px', marginTop: '4px' }}>
-                    <Plus size={14} /> Add Book
-                  </button>
-                </div>
-
-                <div className="books-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {books.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-light)', fontSize: '0.85rem' }}>No books listed. Track your first book above!</div>
-                  ) : (
-                    books.map((book) => {
-                      const progress = Math.min(100, Math.round((book.current_page / book.total_pages) * 100)) || 0;
-                      return (
-                        <div key={book.id} style={{ background: 'white', border: '1px solid #f1f5f9', padding: '10px 12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                              <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>{book.title}</h4>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>by {book.author}</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              {book.note_id && (
-                                <button 
-                                  onClick={() => navigate(`/note/${book.note_id}`)}
-                                  style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '4px' }}
-                                  title="Open Linked Note"
-                                >
-                                  <ExternalLink size={14} />
-                                </button>
+                      {/* Nested Sub-Tasks */}
+                      {task.sub_tasks && task.sub_tasks.length > 0 && (
+                        <div className="sub-tasks-list" style={{ marginLeft: '26px', display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '2px dashed #e2e8f0', paddingLeft: '10px', marginTop: '4px' }}>
+                          {task.sub_tasks.map((st, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => handleToggleSubTask(task.id, idx)}>
+                              {st.completed ? (
+                                <CheckCircle size={14} color="#10b981" />
+                              ) : (
+                                <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1.5px solid #cbd5e1' }}></div>
                               )}
-                              <button 
-                                onClick={() => handleDeleteBook(book.id)}
-                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              <span style={{ fontSize: '0.8rem', color: st.completed ? 'var(--text-light)' : 'var(--text-muted)', textDecoration: st.completed ? 'line-through' : 'none' }}>
+                                {st.text}
+                              </span>
                             </div>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ flex: 1, height: '6px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
-                              <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(to right, var(--primary), var(--accent))', borderRadius: '10px' }} />
-                            </div>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)' }}>{progress}%</span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '2px' }}>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>
-                              Page {book.current_page} / {book.total_pages}
-                            </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Page:</span>
-                              <input 
-                                type="number" 
-                                defaultValue={book.current_page} 
-                                onBlur={(e) => handleUpdatePageProgress(book.id, e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleUpdatePageProgress(book.id, e.target.value)}
-                                style={{ width: '45px', padding: '2px 4px', fontSize: '0.7rem', textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}
-                              />
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      );
-                    })
-                  )}
-                </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
-            )}
-
+            </div>
           </div>
 
           {/* Productivity Analytics */}
