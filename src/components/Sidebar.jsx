@@ -58,6 +58,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             key={item.path} 
             to={item.path}
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            onClick={onClose}
           >
             {item.icon}
             <span>{item.label}</span>
