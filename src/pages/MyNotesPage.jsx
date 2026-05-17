@@ -97,6 +97,28 @@ const MyNotesPage = () => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
 
     try {
+      const noteToDelete = notes.find(note => note.id === id);
+      if (noteToDelete) {
+        const filesToDelete = [];
+        if (noteToDelete.cover_image_path) {
+          filesToDelete.push(noteToDelete.cover_image_path);
+        }
+        if (noteToDelete.attachments && noteToDelete.attachments.length > 0) {
+          noteToDelete.attachments.forEach(att => {
+            if (att.path) filesToDelete.push(att.path);
+          });
+        }
+        
+        if (filesToDelete.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from('app-files')
+            .remove(filesToDelete);
+          if (storageError) {
+            console.error('Error removing note files from storage:', storageError.message);
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('notes')
         .delete()
