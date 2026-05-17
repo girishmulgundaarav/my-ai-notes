@@ -213,3 +213,20 @@
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+@media (max-width: 768px) {
+  .main-header {
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 0 16px;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  .search-container {
+    max-width: 250px;
+  }
+  .ai-badge {
+    display: none !important; /* Hide AI badge inside search on mobile to save space */
+  }
+}

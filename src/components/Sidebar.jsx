@@ -6,13 +6,14 @@ import {
   PlusCircle, 
   User, 
   LogOut,
-  Cpu
+  Cpu,
+  X
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const navItems = [
     { icon: <Home size={20} />, label: 'Home', path: '/home' },
@@ -27,7 +28,23 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="sidebar glass-panel">
+    <div className={`sidebar glass-panel ${isOpen ? 'open' : ''}`}>
+      <button 
+        className="sidebar-close-btn" 
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          color: 'var(--text-muted)',
+          display: 'none'
+        }}
+      >
+        <X size={20} />
+      </button>
       <div className="sidebar-logo">
         <div className="logo-icon">
           <Cpu size={24} color="white" />

@@ -151,3 +151,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: calc(var(--sidebar-width) + 20px);
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .page-container {
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 10px 0;
+  }
+}

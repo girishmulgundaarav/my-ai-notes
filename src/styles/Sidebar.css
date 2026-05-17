@@ -74,3 +74,22 @@
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   padding-top: 20px;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    left: 0;
+    top: 0;
+    height: 100vh;
+    border-radius: 0 24px 24px 0;
+    transform: translateX(-110%);
+    transition: var(--transition);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+    background: white; /* Make sure sidebar is solid on mobile */
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-close-btn {
+    display: flex !important;
+  }
+}

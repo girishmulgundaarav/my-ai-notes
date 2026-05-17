@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Sparkles, User, LogOut, Settings, Shield, X, Loader2 } from 'lucide-react';
+import { Search, Sparkles, User, LogOut, Settings, Shield, X, Loader2, Menu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Header.css';
 
-const Header = ({ user }) => {
+const Header = ({ user, onToggleSidebar }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -108,6 +108,24 @@ const Header = ({ user }) => {
 
   return (
     <header className="main-header glass-panel">
+      <button 
+        className="mobile-menu-btn" 
+        onClick={onToggleSidebar}
+        style={{
+          display: 'none',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          color: 'var(--text-main)',
+          padding: '8px',
+          borderRadius: '8px',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: '12px'
+        }}
+      >
+        <Menu size={24} />
+      </button>
       <div className="search-container">
         <Search className="search-icon" size={18} />
         <input 

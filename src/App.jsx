@@ -12,11 +12,29 @@ import Header from './components/Header';
 import { supabase } from './supabaseClient';
 
 const Layout = ({ children, session }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="app-layout">
-      <Sidebar user={session?.user} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {sidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.25)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 99,
+            display: 'none'
+          }}
+        />
+      )}
       <div className="main-content">
-        <Header user={session?.user} />
+        <Header user={session?.user} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <div className="page-container">
           {children}
         </div>
