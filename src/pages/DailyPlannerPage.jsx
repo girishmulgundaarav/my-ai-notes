@@ -255,6 +255,12 @@ const DailyPlannerPage = () => {
     savePlannerData(date, events, updated);
   };
 
+  const handleGratitudeChange = (index, value) => {
+    const updatedGratitude = [...intentions.gratitude];
+    updatedGratitude[index] = value;
+    setIntentions(prev => ({ ...prev, gratitude: updatedGratitude }));
+  };
+
   const handleGratitudeBlur = (index, value) => {
     const updatedGratitude = [...intentions.gratitude];
     updatedGratitude[index] = value;
