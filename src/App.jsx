@@ -7,6 +7,7 @@ import MyNotesPage from './pages/MyNotesPage';
 import CreateNotePage from './pages/CreateNotePage';
 import EmailConfirmationPage from './pages/EmailConfirmationPage';
 import AccountPage from './pages/AccountPage';
+import DailyPlannerPage from './pages/DailyPlannerPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { supabase } from './supabaseClient';
@@ -57,13 +58,33 @@ function App() {
   useEffect(() => {
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      if (session) {
+        setSession(session);
+      } else if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                 (localStorage.getItem('mock_session') === 'true' || window.location.search.includes('mock_session=true'))) {
+        setSession({
+          user: {
+            id: 'mock-user-12345',
+            email: 'test@example.com',
+            user_metadata: {
+              full_name: 'Test Developer'
+            }
+          }
+        });
+      }
       setLoading(false);
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      if (session) {
+        setSession(session);
+      } else if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                 localStorage.getItem('mock_session') === 'true') {
+        // Keep mock session active if flagged
+      } else {
+        setSession(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -119,6 +140,14 @@ function App() {
           element={
             <ProtectedRoute session={session}>
               <Layout session={session}><AccountPage session={session} /></Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/planner" 
+          element={
+            <ProtectedRoute session={session}>
+              <Layout session={session}><DailyPlannerPage /></Layout>
             </ProtectedRoute>
           } 
         />
