@@ -811,3 +811,451 @@
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   TAB SWITCHER
+   ========================================================================== */
+.tab-switcher {
+  display: flex;
+  gap: 4px;
+  background: rgba(0,0,0,0.03);
+  padding: 4px;
+  border-radius: 14px;
+  width: fit-content;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.tab-btn.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.tab-btn:hover:not(.active) {
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   COMPACT HABIT STRIP (Daily Plan right column)
+   ========================================================================== */
+.compact-habit-strip {
+  padding: 24px;
+  background: var(--glass-bg);
+}
+
+.habit-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.habit-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: var(--transition);
+}
+
+.habit-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+.habit-pill.done {
+  background: color-mix(in srgb, var(--habit-color) 8%, white);
+  border-color: var(--habit-color);
+  color: var(--habit-color);
+}
+
+.habit-pill .pill-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   HABITS TAB - FULL VIEW
+   ========================================================================== */
+.habits-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* --- Add Habit Form --- */
+.habit-add-card {
+  padding: 24px;
+}
+
+.habit-add-card h3 {
+  margin-bottom: 16px;
+  font-size: 1.15rem;
+}
+
+.habit-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.habit-name-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  transition: var(--transition);
+}
+
+.habit-name-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.habit-form-options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.habit-form-options label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.icon-options {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.icon-btn.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: scale(1.1);
+}
+
+.color-options {
+  display: flex;
+  gap: 4px;
+}
+
+.color-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.color-btn.selected {
+  border-color: var(--text-main);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+}
+
+.cat-select {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.habit-add-btn {
+  width: fit-content;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+}
+
+/* --- Week View Grid --- */
+.habit-week-card {
+  padding: 24px;
+}
+
+.habit-week-card h3 {
+  margin-bottom: 16px;
+  font-size: 1.15rem;
+}
+
+.empty-habits {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.habit-week-table-wrap {
+  overflow-x: auto;
+}
+
+.habit-week-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+
+.habit-week-table th {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 8px;
+  letter-spacing: 0.3px;
+}
+
+.habit-week-table th.today-col {
+  color: var(--primary);
+}
+
+.habit-week-table th.habit-name-col {
+  text-align: left;
+  min-width: 140px;
+}
+
+.habit-week-table td {
+  text-align: center;
+  padding: 6px 4px;
+}
+
+.habit-week-table tbody tr {
+  background: white;
+  border-radius: 12px;
+}
+
+.habit-week-table tbody tr td:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.habit-week-table tbody tr td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.habit-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px !important;
+}
+
+.habit-icon-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.habit-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.habit-cell.today-cell {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.habit-cell.future-cell {
+  opacity: 0.4;
+}
+
+.habit-check-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #cbd5e1;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.habit-check-btn:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.habit-check-btn.checked {
+  animation: popCheck 0.3s ease-out;
+}
+
+.streak-cell .streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f97316;
+  background: #fff7ed;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.best-cell .best-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: #f8fafc;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.habit-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.habit-delete-btn:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+@keyframes popCheck {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* --- 365-Day Heatmap --- */
+.habit-heatmap-card {
+  padding: 24px;
+}
+
+.habit-heatmap-card h3 {
+  margin-bottom: 16px;
+  font-size: 1.15rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 12px;
+  gap: 2px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.heatmap-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.5);
+  outline: 1px solid var(--text-light);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  justify-content: flex-end;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.heatmap-legend .legend-cell {
+  width: 10px;
+  height: 10px;
+}
+
+/* --- AI Insight Card --- */
+.habit-ai-card {
+  padding: 24px;
+}
+
+.ai-insight-result {
+  margin-top: 14px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+
+.ai-insight-result p { margin-bottom: 8px; }
+.ai-insight-result strong { color: var(--primary); }
+
+/* --- Responsive for Habits --- */
+@media (max-width: 768px) {
+  .habit-form-options {
+    flex-direction: column;
+  }
+  .habit-week-table th, .habit-week-table td {
+    padding: 4px 2px;
+    font-size: 0.7rem;
+  }
+  .habit-label { max-width: 80px; }
+  .tab-switcher { width: 100%; }
+  .tab-btn { flex: 1; justify-content: center; }
+}

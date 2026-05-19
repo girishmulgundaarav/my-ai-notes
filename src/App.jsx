@@ -64,7 +64,7 @@ function App() {
                  (localStorage.getItem('mock_session') === 'true' || window.location.search.includes('mock_session=true'))) {
         setSession({
           user: {
-            id: 'mock-user-12345',
+            id: 'da39a3ee-5e6b-4b0d-9b1e-123456789abc',
             email: 'test@example.com',
             user_metadata: {
               full_name: 'Test Developer'

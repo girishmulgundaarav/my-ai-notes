@@ -15,9 +15,11 @@ import {
   Lock,
   Plus,
   RefreshCw,
-  Award
+  Award,
+  Trophy
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import HabitTrackerTab from './HabitTrackerTab';
 import '../styles/DailyPlannerPage.css';
 
 const HOURS = [
@@ -89,11 +91,23 @@ const DailyPlannerPage = () => {
   const [loadingAffirmation, setLoadingAffirmation] = useState(false);
   const [userId, setUserId] = useState(null);
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState('planner');
+
+  // Habit Tracker state
+  const [habits, setHabits] = useState([]);
+  const [habitLogs, setHabitLogs] = useState([]);
+
   // Load planner details when date changes
   useEffect(() => {
     loadPlannerData(date);
     fetchAiAffirmation();
   }, [date]);
+
+  // Load habits on mount
+  useEffect(() => {
+    loadHabitData();
+  }, []);
 
   // Sync data fetcher
   const loadPlannerData = async (selectedDate) => {
@@ -452,11 +466,127 @@ const DailyPlannerPage = () => {
   const totalEventsCount = events.filter(e => e.text.trim() !== "").length;
   const progressPercent = totalEventsCount > 0 ? Math.round((completedEventsCount / totalEventsCount) * 100) : 0;
 
+  // --- Habit Tracker Handlers ---
+  const loadHabitData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await fetchHabits(user.id);
+      await fetchHabitLogs(user.id);
+    } catch (e) {
+      console.warn('Habit data load error:', e);
+    }
+  };
+
+  const fetchHabits = async (uid) => {
+    try {
+      const { data, error } = await supabase.from('habits').select('*').eq('user_id', uid).order('created_at', { ascending: true });
+      if (error) throw error;
+      setHabits(data || []);
+    } catch (e) {
+      const local = localStorage.getItem(`habits_${uid}`);
+      setHabits(local ? JSON.parse(local) : []);
+    }
+  };
+
+  const fetchHabitLogs = async (uid) => {
+    try {
+      const yearAgo = new Date();
+      yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+      const { data, error } = await supabase.from('habit_logs').select('*').eq('user_id', uid).gte('completed_date', yearAgo.toISOString().split('T')[0]);
+      if (error) throw error;
+      setHabitLogs(data || []);
+    } catch (e) {
+      const local = localStorage.getItem(`habit_logs_${uid}`);
+      setHabitLogs(local ? JSON.parse(local) : []);
+    }
+  };
+
+  const handleAddHabit = async ({ name, icon, color, category }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error } = await supabase.from('habits').insert({ name, icon, color, category, user_id: user.id });
+      if (error) throw error;
+      await fetchHabits(user.id);
+    } catch (e) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const local = localStorage.getItem(`habits_${user.id}`);
+        const list = local ? JSON.parse(local) : [];
+        list.push({ id: 'local_' + Date.now(), name, icon, color, category, user_id: user.id, created_at: new Date().toISOString() });
+        localStorage.setItem(`habits_${user.id}`, JSON.stringify(list));
+        setHabits(list);
+      }
+    }
+  };
+
+  const handleDeleteHabit = async (habitId) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error: logError } = await supabase.from('habit_logs').delete().eq('habit_id', habitId);
+      if (logError) throw logError;
+      const { error } = await supabase.from('habits').delete().eq('id', habitId);
+      if (error) throw error;
+      await fetchHabits(user.id);
+      await fetchHabitLogs(user.id);
+    } catch (e) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const local = localStorage.getItem(`habits_${user.id}`);
+        if (local) {
+          const list = JSON.parse(local).filter(h => h.id !== habitId);
+          localStorage.setItem(`habits_${user.id}`, JSON.stringify(list));
+          setHabits(list);
+        }
+        const logLocal = localStorage.getItem(`habit_logs_${user.id}`);
+        if (logLocal) {
+          const logs = JSON.parse(logLocal).filter(l => l.habit_id !== habitId);
+          localStorage.setItem(`habit_logs_${user.id}`, JSON.stringify(logs));
+          setHabitLogs(logs);
+        }
+      }
+    }
+  };
+
+  const handleToggleHabitLog = async (habitId, dateStr) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const existing = habitLogs.find(l => l.habit_id === habitId && l.completed_date === dateStr);
+      if (existing) {
+        const { error } = await supabase.from('habit_logs').delete().eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('habit_logs').insert({ habit_id: habitId, user_id: user.id, completed_date: dateStr });
+        if (error) throw error;
+      }
+      await fetchHabitLogs(user.id);
+    } catch (e) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const local = localStorage.getItem(`habit_logs_${user.id}`);
+        let logs = local ? JSON.parse(local) : [];
+        const idx = logs.findIndex(l => l.habit_id === habitId && l.completed_date === dateStr);
+        if (idx >= 0) { logs.splice(idx, 1); } else {
+          logs.push({ id: 'local_' + Date.now(), habit_id: habitId, user_id: user.id, completed_date: dateStr });
+        }
+        localStorage.setItem(`habit_logs_${user.id}`, JSON.stringify(logs));
+        setHabitLogs(logs);
+      }
+    }
+  };
+
   // Format date readable
   const getReadableDate = () => {
     const d = new Date(date + 'T00:00:00');
     return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
   };
+
+  // Today string for compact habit strip
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isHabitLoggedToday = (habitId) => habitLogs.some(l => l.habit_id === habitId && l.completed_date === todayStr);
 
   return (
     <div className="planner-page fade-in">
@@ -465,7 +595,7 @@ const DailyPlannerPage = () => {
         <div className="header-meta">
           <div className="planner-badge">
             <Calendar size={14} />
-            <span>DAILY PLANNER</span>
+            <span>DAILY PLANNER & HABITS</span>
           </div>
           <div className={`sync-status ${syncStatus.toLowerCase().replace(/\s/g, '-')}`}>
             <span className="dot"></span>
@@ -474,24 +604,37 @@ const DailyPlannerPage = () => {
           </div>
         </div>
 
-        <div className="date-navigator">
-          <button className="nav-btn" onClick={() => handleDateChange(-1)}>
-            <ChevronLeft size={20} />
+        {/* Tab Switcher */}
+        <div className="tab-switcher">
+          <button className={`tab-btn ${activeTab === 'planner' ? 'active' : ''}`} onClick={() => setActiveTab('planner')}>
+            <Calendar size={16} /> Daily Plan
           </button>
-          <h2>{getReadableDate()}</h2>
-          <button className="nav-btn" onClick={() => handleDateChange(1)}>
-            <ChevronRight size={20} />
+          <button className={`tab-btn ${activeTab === 'habits' ? 'active' : ''}`} onClick={() => setActiveTab('habits')}>
+            <Trophy size={16} /> Habits
           </button>
-          
-          <input 
-            type="date" 
-            value={date} 
-            onChange={(e) => e.target.value && setDate(e.target.value)}
-            className="header-date-picker"
-          />
         </div>
+
+        {activeTab === 'planner' && (
+          <div className="date-navigator">
+            <button className="nav-btn" onClick={() => handleDateChange(-1)}>
+              <ChevronLeft size={20} />
+            </button>
+            <h2>{getReadableDate()}</h2>
+            <button className="nav-btn" onClick={() => handleDateChange(1)}>
+              <ChevronRight size={20} />
+            </button>
+            <input 
+              type="date" 
+              value={date} 
+              onChange={(e) => e.target.value && setDate(e.target.value)}
+              className="header-date-picker"
+            />
+          </div>
+        )}
       </header>
 
+      {activeTab === 'planner' && (
+        <>
       {/* Daily Affirmation Banner */}
       <section className="affirmation-banner glass-panel">
         <Compass size={20} className="compass-icon" />
@@ -755,8 +898,54 @@ const DailyPlannerPage = () => {
             </div>
           </div>
 
+          {/* Compact Habit Strip */}
+          {habits.length > 0 && (
+            <div className="compact-habit-strip glass-panel">
+              <div className="card-header">
+                <div className="header-title">
+                  <Trophy size={20} color="var(--accent)" />
+                  <h3>Today's Habits</h3>
+                </div>
+                <button className="btn btn-ghost" onClick={() => setActiveTab('habits')} style={{ fontSize: '0.75rem', padding: '4px 8px' }}>
+                  View All →
+                </button>
+              </div>
+              <div className="habit-pills-row">
+                {habits.map(h => {
+                  const done = isHabitLoggedToday(h.id);
+                  return (
+                    <button
+                      key={h.id}
+                      className={`habit-pill ${done ? 'done' : ''}`}
+                      style={{ borderColor: h.color, '--habit-color': h.color }}
+                      onClick={() => handleToggleHabitLog(h.id, todayStr)}
+                    >
+                      <span>{h.icon}</span>
+                      <span className="pill-name">{h.name}</span>
+                      {done ? <CheckCircle size={14} /> : <Circle size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
+      </>
+      )}
+
+      {/* Habits Tab */}
+      {activeTab === 'habits' && (
+        <HabitTrackerTab
+          habits={habits}
+          habitLogs={habitLogs}
+          onAddHabit={handleAddHabit}
+          onDeleteHabit={handleDeleteHabit}
+          onToggleLog={handleToggleHabitLog}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };
