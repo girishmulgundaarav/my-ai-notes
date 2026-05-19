@@ -34,47 +34,63 @@ const mockSession = {
   user: mockUser
 };
 
-const authWrapper = {
-  ...client.auth,
-  getUser: async () => {
-    if (isMockActive()) {
-      return { data: { user: mockUser }, error: null };
-    }
-    return client.auth.getUser();
-  },
-  getSession: async () => {
-    if (isMockActive()) {
-      return { data: { session: mockSession }, error: null };
-    }
-    return client.auth.getSession();
-  },
-  onAuthStateChange: (callback) => {
-    if (isMockActive()) {
-      // Trigger callback with mock session in next tick
-      setTimeout(() => callback('SIGNED_IN', mockSession), 0);
-      return {
-        data: {
-          subscription: {
-            unsubscribe: () => {}
-          }
+const authProxy = new Proxy(client.auth, {
+  get(target, prop, receiver) {
+    if (prop === 'getUser') {
+      return async () => {
+        if (isMockActive()) {
+          return { data: { user: mockUser }, error: null };
         }
+        return target.getUser();
       };
     }
-    return client.auth.onAuthStateChange(callback);
-  },
-  signOut: async () => {
-    if (isMockActive()) {
-      localStorage.removeItem('mock_session');
-      return { error: null };
+    if (prop === 'getSession') {
+      return async () => {
+        if (isMockActive()) {
+          return { data: { session: mockSession }, error: null };
+        }
+        return target.getSession();
+      };
     }
-    return client.auth.signOut();
+    if (prop === 'onAuthStateChange') {
+      return (callback) => {
+        if (isMockActive()) {
+          // Trigger callback with mock session in next tick
+          setTimeout(() => callback('SIGNED_IN', mockSession), 0);
+          return {
+            data: {
+              subscription: {
+                unsubscribe: () => {}
+              }
+            }
+          };
+        }
+        return target.onAuthStateChange(callback);
+      };
+    }
+    if (prop === 'signOut') {
+      return async () => {
+        if (isMockActive()) {
+          localStorage.removeItem('mock_session');
+          return { error: null };
+        }
+        return target.signOut();
+      };
+    }
+    
+    // Default fallback: bind function properties to preserve correct context
+    const value = Reflect.get(target, prop, receiver);
+    if (typeof value === 'function') {
+      return value.bind(target);
+    }
+    return value;
   }
-};
+});
 
 export const supabase = new Proxy(client, {
   get(target, prop) {
     if (prop === 'auth') {
-      return authWrapper;
+      return authProxy;
     }
     return target[prop];
   }
