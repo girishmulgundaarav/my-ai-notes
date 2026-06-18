@@ -7,7 +7,6 @@ import MyNotesPage from './pages/MyNotesPage';
 import CreateNotePage from './pages/CreateNotePage';
 import EmailConfirmationPage from './pages/EmailConfirmationPage';
 import AccountPage from './pages/AccountPage';
-import HabitsPage from './pages/HabitsPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { supabase } from './supabaseClient';
@@ -144,14 +143,6 @@ function App() {
           } 
         />
 
-        <Route 
-          path="/habits" 
-          element={
-            <ProtectedRoute session={session}>
-              <Layout session={session}><HabitsPage /></Layout>
-            </ProtectedRoute>
-          } 
-        />
       </Routes>
     </Router>
   );

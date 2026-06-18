@@ -7,8 +7,7 @@ import {
   User, 
   LogOut,
   Cpu,
-  X,
-  Trophy
+  X
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +19,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { icon: <Home size={20} />, label: 'Home', path: '/home' },
     { icon: <StickyNote size={20} />, label: 'My Notes', path: '/my-notes' },
     { icon: <PlusCircle size={20} />, label: 'Create Note', path: '/create' },
-    { icon: <Trophy size={20} />, label: 'Habits', path: '/habits' },
     { icon: <User size={20} />, label: 'Account', path: '/account' },
   ];
 
