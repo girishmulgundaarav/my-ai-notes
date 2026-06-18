@@ -19,7 +19,6 @@ import {
   Trophy
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import HabitTrackerTab from './HabitTrackerTab';
 import '../styles/DailyPlannerPage.css';
 
 const HOURS = [
@@ -90,9 +89,6 @@ const DailyPlannerPage = () => {
   const [aiAffirmation, setAiAffirmation] = useState('');
   const [loadingAffirmation, setLoadingAffirmation] = useState(false);
   const [userId, setUserId] = useState(null);
-
-  // Tab state
-  const [activeTab, setActiveTab] = useState('planner');
 
   // Habit Tracker state
   const [habits, setHabits] = useState([]);
@@ -595,7 +591,7 @@ const DailyPlannerPage = () => {
         <div className="header-meta">
           <div className="planner-badge">
             <Calendar size={14} />
-            <span>DAILY PLANNER & HABITS</span>
+            <span>DAILY PLANNER</span>
           </div>
           <div className={`sync-status ${syncStatus.toLowerCase().replace(/\s/g, '-')}`}>
             <span className="dot"></span>
@@ -604,37 +600,24 @@ const DailyPlannerPage = () => {
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="tab-switcher">
-          <button className={`tab-btn ${activeTab === 'planner' ? 'active' : ''}`} onClick={() => setActiveTab('planner')}>
-            <Calendar size={16} /> Daily Plan
+        <div className="date-navigator">
+          <button className="nav-btn" onClick={() => handleDateChange(-1)}>
+            <ChevronLeft size={20} />
           </button>
-          <button className={`tab-btn ${activeTab === 'habits' ? 'active' : ''}`} onClick={() => setActiveTab('habits')}>
-            <Trophy size={16} /> Habits
+          <h2>{getReadableDate()}</h2>
+          <button className="nav-btn" onClick={() => handleDateChange(1)}>
+            <ChevronRight size={20} />
           </button>
+          <input 
+            type="date" 
+            value={date} 
+            onChange={(e) => e.target.value && setDate(e.target.value)}
+            className="header-date-picker"
+          />
         </div>
-
-        {activeTab === 'planner' && (
-          <div className="date-navigator">
-            <button className="nav-btn" onClick={() => handleDateChange(-1)}>
-              <ChevronLeft size={20} />
-            </button>
-            <h2>{getReadableDate()}</h2>
-            <button className="nav-btn" onClick={() => handleDateChange(1)}>
-              <ChevronRight size={20} />
-            </button>
-            <input 
-              type="date" 
-              value={date} 
-              onChange={(e) => e.target.value && setDate(e.target.value)}
-              className="header-date-picker"
-            />
-          </div>
-        )}
       </header>
 
-      {activeTab === 'planner' && (
-        <>
+      <>
       {/* Daily Affirmation Banner */}
       <section className="affirmation-banner glass-panel">
         <Compass size={20} className="compass-icon" />
@@ -906,7 +889,7 @@ const DailyPlannerPage = () => {
                   <Trophy size={20} color="var(--accent)" />
                   <h3>Today's Habits</h3>
                 </div>
-                <button className="btn btn-ghost" onClick={() => setActiveTab('habits')} style={{ fontSize: '0.75rem', padding: '4px 8px' }}>
+                <button className="btn btn-ghost" onClick={() => navigate('/habits')} style={{ fontSize: '0.75rem', padding: '4px 8px' }}>
                   View All →
                 </button>
               </div>
@@ -933,19 +916,6 @@ const DailyPlannerPage = () => {
         </div>
       </div>
       </>
-      )}
-
-      {/* Habits Tab */}
-      {activeTab === 'habits' && (
-        <HabitTrackerTab
-          habits={habits}
-          habitLogs={habitLogs}
-          onAddHabit={handleAddHabit}
-          onDeleteHabit={handleDeleteHabit}
-          onToggleLog={handleToggleHabitLog}
-          loading={loading}
-        />
-      )}
     </div>
   );
 };
